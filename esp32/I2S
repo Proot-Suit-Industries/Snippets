@@ -1,0 +1,35 @@
+//This function configures the I2S peripheral for stereo sampling at 44100 hz with a 16 bit resolution. Tested on the INMP441 mic.
+
+void setupi2s() {
+  // I2S configuration
+  i2s_config_t i2s_config = {
+    .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
+    .sample_rate = 44100,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+    .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+    .communication_format = I2S_COMM_FORMAT_I2S_MSB,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = 8,
+    .dma_buf_len = 64,
+    .use_apll = false
+  };
+  // I2S pin configuration, create defines for GPIO numbers for BCK, WS and DIN
+  i2s_pin_config_t pin_config = {
+    .bck_io_num = I2S_BCK_IO,
+    .ws_io_num = I2S_WS_IO,
+    .data_out_num = I2S_PIN_NO_CHANGE,
+    .data_in_num = I2S_DIN_IO
+  };
+
+  // Install and start I2S driver
+  i2s_driver_install(I2S_NUM, &i2s_config, 0, NULL);
+  i2s_set_pin(I2S_NUM, &pin_config);
+}
+
+//This goes whenever a read is required. This example reads 64 samples from each channel.
+
+int16_t i2s_data[128];
+size_t bytes_read;
+
+// Read data from I2S
+i2s_read(I2S_NUM_0, i2s_data, sizeof(i2s_data), &bytes_read, portMAX_DELAY);
